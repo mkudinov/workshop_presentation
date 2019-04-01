@@ -5,6 +5,7 @@
 \usepackage{graphicx}
 \usepackage{multicol}
 \usepackage{tikz}
+\usepackage{hyperref}
 
 % Code listings with syntax highlighting
 %  Require Pygments
@@ -78,16 +79,79 @@ Samsung R\&D Center Russia
     \section{Introduction}
 
     \frame{
-        \frametitle{This is the first slide}
+        \frametitle{Speaker recognition}
         %Content goes here
-        \begin{block}{Ideas}
-            See how this loooks
-        \end{block}
-        \begin{itemize}
-            \item Item 1
-            \item Item 2
+        \begin{block}{Problems}
+            \begin{itemize}
+            \item Speaker verification
+            \item Speaker identification
+            \item Speaker diarization
         \end{itemize}
+        \end{block}
+        \begin{block}{Environment}
+            \begin{itemize}
+            \item Text-dependent
+            \item Text-independent
+        \end{itemize}
+        \end{block}
     }
+
+    \section{Feature extraction}
+
+    \frame{
+        \frametitle{Feature extraction: Short-time Fourier Transform}
+     		\begin{center}
+     			\includegraphics[width=0.7\textwidth]{images/feature-extraction.png}\\
+     			\footnotesize{TL;DR: we use a 25ms sliding window with 10ms stride and apply FFT in each frame [1]}
+     			\begin{itemize}
+     			\item Sound wave is preemphasized with a linear filter: $y[n] = x[n] - 0.95x[n-1]$  to boost higher frequencies
+     			\item Each frame is processed by a windowing function to prevent spectral distortion
+     			\item Each spectrum is post-filtered giving rise to different features extraction algorithms: LPC, MFSC, MFCC etc.
+     			\end{itemize}
+     			\end{center}                         				
+    }
+    
+    \frame{
+    \frametitle{Perceptially motivated features}
+    \begin{columns}
+    \begin{column}[t]{0.57\textwidth}
+    \begin{itemize}
+    \item Frequency resolution is not uniform for the human ear
+    \item At low frequencies we hear small changes in frequency while at high-frequency range the audible difference is much higher
+    \item Actually our frequency resolution mapping is logarithmic
+    \end{itemize}
+     \end{column}
+     \begin{column}[t]{0.43\textwidth}
+         \begin{center}
+     	     \includegraphics[width=1.0\textwidth]{images/mel.png}\\
+     	     \footnotesize{Mel-frequency scale}
+         \end{center}
+     \end{column}
+    \end{columns}
+    }
+    
+    \frame{
+    \frametitle{Perceptially motivated features: MFSC and MFCC}
+    \begin{center}
+    \includegraphics[width=1.0\textwidth]{images/filterbank_formula.png}\\
+    \footnotesize{Mel filterbank formula (left) and graph (right)}    
+    \end{center}
+     \begin{itemize}
+     \item Filterbank with central frequencies and bandwidths set according to the mel-scale 
+     \item Mel-frequency spectral coefficients: logarithm of filter responses
+     \item Mel-frequency cepstral coefficients: apply decorrelating transform (DCT or inv-DCT) to MFSC
+     \end{itemize}
+    }
+    
+    \frame{
+    \frametitle{MFSC and MFCC: step-by-step}
+    \begin{center}
+    \includegraphics[width=0.6\textwidth]{images/pipeline.png}\\
+    \footnotesize{MFCC computation (left to right) [2]}  
+    \end{center}
+    }
+    
+    \section{"Classic" approaches}
     
     \frame{
         \frametitle{Universal Background Model}
@@ -111,7 +175,7 @@ Samsung R\&D Center Russia
      					\end{center}               
      					\begin{center}
      					\includegraphics[width=1.0\textwidth]{images/ubm_map.png}\\
-     					\footnotesize{MAP update of UBM}
+     					\footnotesize{MAP update of UBM [3]}
      					\end{center}               				
                 \end{column}
             \end{columns}
@@ -125,9 +189,6 @@ Samsung R\&D Center Russia
                     \begin{itemize}
                         \item Supervector $m$: do MAP-updates of means of the UBM and concatenate them
                         \item Use lower-bound on KL-divergence as a distance measure:
-%                        \[
-%                            \mathbb{D}(p(x)||q(x)) \leq \sum_i \pi_i \mathbb{D}(\mathcal{N}(\mu^p_i, \Sigma_i)||\mathcal{N}(\mu^q_i, \Sigma_i))
-%                        \]
                         $d(m^a, m^b) = \frac{1}{2} \sum_i \pi_i (m^a_i - m^b_i)\Sigma^{-1}_i(m^a_i - m^b_i)$
                         \item Use SVM on supervectors with the kernel defined above
                         \item Nuisance attribute projection
@@ -145,8 +206,6 @@ Samsung R\&D Center Russia
     
         \frame{
         \frametitle{Extensions of supervector model}
-  %          \begin{columns}
-              %  \begin{column}[t]{0.58\textwidth}
                     \begin{itemize}
                         \item SVM with simple cosine kernel on preprocessed supervectors
                         \item Within-class Covariance Normalization
@@ -160,21 +219,8 @@ Samsung R\&D Center Russia
                         \item Probabilistic LDA (PLDA)
                     \end{itemize}
      				                           				
-      %          \end{column}
-  %          \end{columns}
     }
-    
-            \frame{
-        \frametitle{Joint Factor Analysis in Speaker Verification}
-  %          \begin{columns}
-              %  \begin{column}[t]{0.58\textwidth}
-                    \begin{itemize}
-                        \item Joint Factor Analysis: $m = \mu + Vy + Ux + Dz$, where $y$ is a speaker-dependent and $x$ is a channel-dependent vector
-                    \end{itemize}
-     				                           				
-      %          \end{column}
-  %          \end{columns}
-    }
+
     
     \frame{
         \frametitle{i-vectors}
@@ -194,6 +240,8 @@ Samsung R\&D Center Russia
            \item $T$ is estimated using ML algorithm
            \end{itemize}
     }
+    
+    \section{Deep learning approaches}
     
         \frame{
         \frametitle{DNNs for better i-vector extraction}
@@ -228,7 +276,7 @@ Samsung R\&D Center Russia
            \begin{column}[t]{0.42\textwidth}
                 \begin{center}
      			    \includegraphics[width=0.9\textwidth]{images/bottleneck.png}\\
-     				\footnotesize{DNN for bottleneck features extraction}
+     				\footnotesize{DNN for bottleneck features extraction [4]}
      		    \end{center}
            \end{column}
           \end{columns}
@@ -248,14 +296,14 @@ Samsung R\&D Center Russia
            \begin{column}[t]{0.42\textwidth}
                 \begin{center}
      			    \includegraphics[width=0.9\textwidth]{images/d-vector.png}\\
-     				\footnotesize{DNN for d-vector extraction}
+     				\footnotesize{DNN for d-vector extraction [5]}
      		    \end{center}
            \end{column}
           \end{columns}
     }
     
         \frame{
-        \frametitle{Text-independent end-to-end Speaker verification/x-vectors}
+        \frametitle{Text-independent end-to-end speaker verification/x-vectors}
           \begin{columns}
              \begin{column}[t]{0.5\textwidth}
                 \begin{itemize}
@@ -277,7 +325,7 @@ Samsung R\&D Center Russia
            \begin{column}[t]{0.5\textwidth}
                 \begin{center}
      			    \includegraphics[width=0.8\textwidth]{images/end2end.png}\\
-     				\footnotesize{DNN scoring}
+     				\footnotesize{DNN scoring [6]}
      		    \end{center}
            \end{column}
           \end{columns}
@@ -285,84 +333,68 @@ Samsung R\&D Center Russia
 
 
 	% This block includes a picture full slide
-	{ % all template changes are local to this group.
-		\setbeamertemplate{navigation symbols}{}
-		\begin{frame}[plain]
-			\begin{tikzpicture}[remember picture,overlay]
-			\node[at=(current page.center)] {
-				\includegraphics[width=\paperwidth]{images/image.png}
-			};
-			\end{tikzpicture}
-		\end{frame}
-	}
-
-    % This slide has code block with syntax highlighting using the Minted package
-    %  Minted requires Pygments and building the PDF with the --shell-escape argument
-    %  for pdflatex
-    \begin{frame}[fragile]
-        \frametitle{This slide has code blocks}
-		\begin{minted}[
-			frame=lines,
-			framesep=2mm,
-			baselinestretch=1.2,
-			fontsize=\footnotesize,
-			linenos
-			]{python}
-        import numpy as np
-         
-        def incmatrix(genl1,genl2):
-            m = len(genl1)
-            n = len(genl2)
-            M = None #to become the incidence matrix
-            VT = np.zeros((n*m,1), int)  #dummy variable
-        \end{minted}
-\end{frame}
+%	{ % all template changes are local to this group.
+%		\setbeamertemplate{navigation symbols}{}
+%		\begin{frame}[plain]
+%			\begin{tikzpicture}[remember picture,overlay]
+%			\node[at=(current page.center)] {
+%				\includegraphics[width=\paperwidth]{images/image.png}
+%			};
+%			\end{tikzpicture}
+%		\end{frame}
+%	}
 
 
-    \subsection{Intro subsection}
-    \frame{
-        \frametitle{This is the second slide}
-        \framesubtitle{A bit more information about this}
-        %More content goes here
-        \begin{alertblock}{Alert block}
-            Alert text
-        \end{alertblock}
-    }
+%    \subsection{Intro subsection}
+%    \frame{
+%        \frametitle{This is the second slide}
+%        \framesubtitle{A bit more information about this}
+%        %More content goes here
+%        \begin{alertblock}{Alert block}
+%            Alert text
+%        \end{alertblock}
+%    }
     
-    \section{Section 1}
+%    \section{Section 1}
 
-    \frame{
-        \frametitle{Generic slide}
-        \framesubtitle{A bit more information about this}
-        %More content goes here
-    }
-    \section{Section 2}
+%    \frame{
+%        \frametitle{Generic slide}
+%        \framesubtitle{A bit more information about this}
+%        %More content goes here
+%    }
+%    \section{Section 2}
 
-    \frame{
-        \frametitle{Generic slide}
-        \framesubtitle{A bit more information about this}
-        %More content goes here
-    }
+%    \frame{
+%        \frametitle{Generic slide}
+%        \framesubtitle{A bit more information about this}
+%        %More content goes here
+%    }
 
     
-    \section{Conclusion}
+%    \section{Conclusion}
     
-    \frame{
-        \frametitle{Generic slide}
-        \framesubtitle{A bit more information about this}
-        %More content goes here
-    }
+%    \frame{
+%        \frametitle{Generic slide}
+%        \framesubtitle{A bit more information about this}
+%        %More content goes here
+%    }
     
-    \section{Acknowledgements}
-    
-    \frame{
-        \frametitle{Generic slide}
-        \framesubtitle{A bit more information about this}
-        %More content goes here
-    }
-
     \section{}
-   % \cernSplashWhite
+    \cernThankYou   
+    
+    \frame{
+        \frametitle{References}
+        \framesubtitle{External resources}
+        \begin{itemize}
+        \item $\left[ 1 \right]$  \url{https://en.wikipedia.org/wiki/Spectrogram/media/File:Spectrogram-19thC.png}
+        \item $\left[ 2 \right]$  Bhiksha Raj and Rita Singh. Feature Computation: Representing the Speech Signal, \url{http://www.cs.cmu.edu/afs/cs/user/bhiksha/WWW/courses/yahoo2009/01-02.featurecomputation.pdf}
+        \item $\left[ 3 \right]$  Jakub Galka. Voice Biometrics - how to recognize a speaker \url{https://www.slideshare.net/TomaszZietek/voicepin-biometrics}
+        \item $\left[ 4 \right]$  Alicia Lozano-Diez, Anna Silnova et al. Analysis and Optimization of Bottleneck Features for Speaker Recognition, Odyssey 2016
+        \item $\left[ 5 \right]$  Ehsan Variani, Xin Lei et al. DEEP NEURAL NETWORKS FOR SMALL FOOTPRINT TEXT-DEPENDENT SPEAKER VERIFICATION, ICASSP 2014
+        \item $\left[ 6 \right]$  David Snyder, Daniel Garcia-Romero et al. X-VECTORS: ROBUST DNN EMBEDDINGS FOR SPEAKER RECOGNITION, ICASSP 2018
+        \end{itemize}
+        %More content goes here
+    }
 
 \end{document}
 
