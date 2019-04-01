@@ -156,8 +156,20 @@ Samsung R\&D Center Russia
                         \item SVM on LDA-projected supervectors
                         \item Nuisance Attribute Projection
                         $\argmin_P \sum_{i,j} W_{i,j}\|Pm_1 - Pm_2\|_2^2$, where $W_{i,j} = 0$ iff $w1$ and $w2$ are from e.g. different microphones (nuisance channel direction)
-						\item Joint Factor Analysis: $m = \mu + Vy + Ux + Dz$, where $y$ is a speaker-dependent and $x$ is a channel-dependent vector
+						\item Joint Factor Analysis
                         \item Probabilistic LDA (PLDA)
+                    \end{itemize}
+     				                           				
+      %          \end{column}
+  %          \end{columns}
+    }
+    
+            \frame{
+        \frametitle{Joint Factor Analysis in Speaker Verification}
+  %          \begin{columns}
+              %  \begin{column}[t]{0.58\textwidth}
+                    \begin{itemize}
+                        \item Joint Factor Analysis: $m = \mu + Vy + Ux + Dz$, where $y$ is a speaker-dependent and $x$ is a channel-dependent vector
                     \end{itemize}
      				                           				
       %          \end{column}
@@ -191,7 +203,7 @@ Samsung R\&D Center Russia
                    \item Use DNN to obtain class-posterior for statistics collection $N$ and $F$ for i-vector calculation
                    \item Classes are context-aware \textit{senones}
                    \item Requires ASR system trained separately
-                   \item Similarity score was computed on PLDA-projections
+                   \item Similarity score is computed on PLDA-projections
                 \end{itemize}
              \end{column}
            \begin{column}[t]{0.42\textwidth}
@@ -204,24 +216,73 @@ Samsung R\&D Center Russia
     }
     
      \frame{
-        \frametitle{TDNN-based UBM}
+        \frametitle{GMM-UBM on bottleneck features}
           \begin{columns}
              \begin{column}[t]{0.58\textwidth}
                 \begin{itemize}
-                   \item Use DNN to obtain class-posterior for statistics collection $N$ and $F$ for i-vector calculation
-                   \item Classes are context-aware \textit{senones}
-                   \item Requires ASR system trained separately
-                   \item Similarity score was computed on PLDA-projections
+                   \item Use DNN predicting senone classes to train a bottleneck mapping
+                   \item Use first layers of the DNN as a bottleneck features extractor
+                   \item Train traditional GMM-UBM/i-vector system on the bottleneck features
                 \end{itemize}
              \end{column}
            \begin{column}[t]{0.42\textwidth}
                 \begin{center}
-     			    \includegraphics[width=0.9\textwidth]{images/dnn-i-vector.png}\\
-     				\footnotesize{DNN/i-vector framework}
+     			    \includegraphics[width=0.9\textwidth]{images/bottleneck.png}\\
+     				\footnotesize{DNN for bottleneck features extraction}
      		    \end{center}
            \end{column}
           \end{columns}
     }
+    
+         \frame{
+        \frametitle{d-vectors}
+          \begin{columns}
+             \begin{column}[t]{0.58\textwidth}
+                \begin{itemize}
+                   \item Train a DNN to predict speaker label by a short speech segment
+                   \item Use last hidden layer as a feature vector
+                   \item At the enrollment stage average of last hidden layers for each speech frame is used as a speaker vector
+                   \item At the identification stage the decision is made according to a particular distance metric
+                \end{itemize}
+             \end{column}
+           \begin{column}[t]{0.42\textwidth}
+                \begin{center}
+     			    \includegraphics[width=0.9\textwidth]{images/d-vector.png}\\
+     				\footnotesize{DNN for d-vector extraction}
+     		    \end{center}
+           \end{column}
+          \end{columns}
+    }
+    
+        \frame{
+        \frametitle{Text-independent end-to-end Speaker verification/x-vectors}
+          \begin{columns}
+             \begin{column}[t]{0.5\textwidth}
+                \begin{itemize}
+                   \item Add global average pooling to handle problem of different lengths
+                   \item Use objective similar to metric learning
+                   \[
+                   P(x,y) = \frac{1}{1+e^{-L(x,y)}}
+                   \]
+                   \[
+                   L(x,y) = x^Ty - xSx - ySy + b
+                   \]
+                   \begin{equation*}
+                   \begin{split}
+                   E = & -\sum_{(x,y) \in Same} \log P(x,y) \\ &- K\sum_{(x,y) \not \in Same} \log (1 - P(x,y))
+                   \end{split}    
+                   \end{equation*}
+                \end{itemize}
+             \end{column}
+           \begin{column}[t]{0.5\textwidth}
+                \begin{center}
+     			    \includegraphics[width=0.8\textwidth]{images/end2end.png}\\
+     				\footnotesize{DNN scoring}
+     		    \end{center}
+           \end{column}
+          \end{columns}
+    }
+
 
 	% This block includes a picture full slide
 	{ % all template changes are local to this group.
